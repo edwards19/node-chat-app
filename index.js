@@ -44,14 +44,19 @@ app.listen(cfg.port, () => {
 // WebSocket server
 const ws = new WebSocketServer({ port: cfg.wsPort });
 
-// client connection
-ws.on('connection', (socket, req) => {
+const recentMessages = [];
 
+// client connection
+ws.on('connection', (socket, req, client) => {
+  console.log('client here', client);
   console.log(`connection from ${ req.socket.remoteAddress }`);
+  socket.send(JSON.stringify(recentMessages));
 
   // received message
   socket.on('message', (msg, binary) => {
-
+    recentMessages.push(JSON.parse(msg));
+    
+    console.log('recent', recentMessages);
     // broadcast to all clients
     ws.clients.forEach(client => {
       client.readyState === WebSocket.OPEN && client.send(msg, { binary });
