@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "debug": "nodemon ./index.js",
-    "start": "node ./index.js"
+    "start": "nodemon ./index.js"
   },
   "author": "",
   "license": "MIT",
