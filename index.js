@@ -4,11 +4,11 @@ import WebSocket, { WebSocketServer } from 'ws';
 
 // configuration
 const cfg = {
-  title:    'WebSocket Chat',
-  port:     process.env.PORT || 3000,
-  wsPort:   process.env.WSPORT || 3001,
-  nameLen:  15,
-  msgLen:   200
+	title: 'WebSocket Chat',
+	port: process.env.PORT || 3000,
+	wsPort: process.env.WSPORT || 3001,
+	nameLen: 15,
+	msgLen: 200,
 };
 
 // --------------------------
@@ -21,13 +21,13 @@ app.set('views', 'views');
 
 // CORS header
 app.use((req, res, next) => {
-  res.append('Access-Control-Allow-Origin', '*');
-  next();
+	res.append('Access-Control-Allow-Origin', '*');
+	next();
 });
 
 // home page
 app.get('/', (req, res) => {
-  res.render('chat', cfg);
+	res.render('chat', cfg);
 });
 
 // static assets
@@ -35,10 +35,9 @@ app.use(express.static('static'));
 
 // start server
 app.listen(cfg.port, () => {
-  console.log(`Express server at: http://localhost:${ cfg.port }`);
-  console.log(`Web Socket server: ws://localhost:${ cfg.wsPort }`);
+	console.log(`Express server at: http://localhost:${cfg.port}`);
+	console.log(`Web Socket server: ws://localhost:${cfg.wsPort}`);
 });
-
 
 // --------------------------
 // WebSocket server
@@ -47,26 +46,26 @@ const ws = new WebSocketServer({ port: cfg.wsPort });
 const recentMessages = [];
 
 // client connection
-ws.on('connection', (socket, req, client) => {
-  console.log('client here', client);
-  console.log(`connection from ${ req.socket.remoteAddress }`);
-  socket.send(JSON.stringify(recentMessages));
+ws.on('connection', (socket, req) => {
+	console.log(`connection from ${req.socket.remoteAddress}`);
+	if (recentMessages.length > 10) {
+		socket.send(JSON.stringify(recentMessages.slice(-10)));
+	} else {
+		socket.send(JSON.stringify(recentMessages));
+	}
 
-  // received message
-  socket.on('message', (msg, binary) => {
-    recentMessages.push(JSON.parse(msg));
-    
-    console.log('recent', recentMessages);
-    // broadcast to all clients
-    ws.clients.forEach(client => {
-      client.readyState === WebSocket.OPEN && client.send(msg, { binary });
-    });
+	// received message
+	socket.on('message', (msg, binary) => {
+		recentMessages.push(JSON.parse(msg));
 
-  });
+		// broadcast to all clients
+		ws.clients.forEach((client) => {
+			client.readyState === WebSocket.OPEN && client.send(msg, { binary });
+		});
+	});
 
-  // closed
-  socket.on('close', () => {
-    console.log(`disconnection from ${ req.socket.remoteAddress }`);
-  });
-
+	// closed
+	socket.on('close', () => {
+		console.log(`disconnection from ${req.socket.remoteAddress}`);
+	});
 });
