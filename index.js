@@ -2,6 +2,11 @@
 import express from 'express';
 import WebSocket, { WebSocketServer } from 'ws';
 
+import {
+	createMessage,
+	getLastTenMessages,
+} from './database.js';
+
 // configuration
 const cfg = {
 	title: 'WebSocket Chat',
@@ -25,10 +30,19 @@ app.use((req, res, next) => {
 	next();
 });
 
+app.use(express.urlencoded({ extended: true }));
+
+app.use(express.json());
+
 // home page
 app.get('/', (req, res) => {
 	res.render('chat', cfg);
 });
+
+app.use((err, req, res, next) => {
+	console.error(err.stack);
+	res.status(500).send('Something went wrong!');
+})
 
 // static assets
 app.use(express.static('static'));
@@ -43,20 +57,20 @@ app.listen(cfg.port, () => {
 // WebSocket server
 const ws = new WebSocketServer({ port: cfg.wsPort });
 
-const recentMessages = [];
-
 // client connection
-ws.on('connection', (socket, req) => {
+ws.on('connection', async (socket, req) => {
 	console.log(`connection from ${req.socket.remoteAddress}`);
-	if (recentMessages.length > 10) {
-		socket.send(JSON.stringify(recentMessages.slice(-10)));
-	} else {
-		socket.send(JSON.stringify(recentMessages));
-	}
+
+	// retrieve the last 10 messages from the db
+	const recentMessages = await getLastTenMessages();
+	socket.send(JSON.stringify(recentMessages));
 
 	// received message
-	socket.on('message', (msg, binary) => {
-		recentMessages.push(JSON.parse(msg));
+	socket.on('message', async (msg, binary) => {
+
+		// store the message in the db
+		const { name, msg: message } = JSON.parse(msg);
+		await createMessage(name, message);
 
 		// broadcast to all clients
 		ws.clients.forEach((client) => {

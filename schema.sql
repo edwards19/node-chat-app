@@ -1,0 +1,10 @@
+CREATE DATABASE chat_app;
+
+USE chat_app;
+
+CREATE TABLE messages (
+  id integer PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  created TIMESTAMP NOT NULL DEFAULT NOW()
+);

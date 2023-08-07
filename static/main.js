@@ -22,7 +22,7 @@ function wsInit(wsServer) {
 	ws.addEventListener('message', (e) => {
     let recentMessages;
     if (Array.isArray(JSON.parse(e.data))) {
-      recentMessages = JSON.parse(e.data);
+      recentMessages = JSON.parse(e.data).reverse();
     }
 
 		try {
@@ -37,7 +37,7 @@ function wsInit(wsServer) {
 					dom.chat.appendChild(name);
 
 					msg.className = 'msg';
-					msg.textContent = chat.msg || 'said nothing';
+					msg.textContent = chat.message || 'said nothing';
 					dom.chat.appendChild(msg).scrollIntoView({ behavior: 'smooth' });
 				});
 			} else {
